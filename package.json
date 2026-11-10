@@ -1,0 +1,36 @@
+{
+  "name": "free-domain-name-extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Browser extension that resolves community-owned domains from a GitHub registry.",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "npm run build && node scripts/e2e.mjs",
+    "validate:registry": "tsx scripts/validate-registry.ts",
+    "check": "npm run typecheck && npm run test && npm run build"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.7",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "GPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/free-domain-name/free-domain-name-extension.git"
+  },
+  "homepage": "https://github.com/free-domain-name/free-domain-name-extension",
+  "bugs": {
+    "url": "https://github.com/free-domain-name/free-domain-name-extension/issues"
+  }
+}

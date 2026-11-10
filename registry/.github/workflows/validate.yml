@@ -1,0 +1,17 @@
+name: Validate registry
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  schema:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate registry.json against schema.json
+        run: npx --yes -p ajv-cli@5 -p ajv-formats ajv validate -c ajv-formats -s schema.json -d registry.json --spec=draft2020 --strict=false

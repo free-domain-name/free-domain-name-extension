@@ -1,0 +1,211 @@
+/* Shared design tokens and primitives for all extension pages. */
+:root {
+  color-scheme: dark;
+  --bg: #060a12;
+  --panel: rgba(13, 21, 37, 0.9);
+  --panel-solid: #0d1525;
+  --field: rgba(2, 6, 23, 0.55);
+  --border: rgba(148, 163, 184, 0.16);
+  --border-strong: rgba(148, 163, 184, 0.3);
+  --text: #e6edf7;
+  --muted: #93a4bd;
+  --faint: #64748b;
+  --accent: #2dd4bf;
+  --accent-bright: #5eead4;
+  --accent-ink: #03211e;
+  --blue: #38bdf8;
+  --ok: #34d399;
+  --warn: #fbbf24;
+  --warn-bg: rgba(251, 191, 36, 0.08);
+  --warn-border: rgba(251, 191, 36, 0.28);
+  --danger: #fb7185;
+  --danger-bg: rgba(251, 113, 133, 0.08);
+  --danger-border: rgba(251, 113, 133, 0.3);
+  --radius-lg: 22px;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+  --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: "SFMono-Regular", ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --bg: #edf4f7;
+    --panel: rgba(255, 255, 255, 0.92);
+    --panel-solid: #ffffff;
+    --field: rgba(241, 245, 249, 0.9);
+    --border: rgba(15, 23, 42, 0.1);
+    --border-strong: rgba(15, 23, 42, 0.2);
+    --text: #0f172a;
+    --muted: #52637a;
+    --faint: #76869c;
+    --accent: #0f9f8f;
+    --accent-bright: #0b7f73;
+    --accent-ink: #ffffff;
+    --blue: #0284c7;
+    --ok: #059669;
+    --warn: #a16207;
+    --warn-bg: rgba(234, 179, 8, 0.12);
+    --warn-border: rgba(161, 98, 7, 0.3);
+    --danger: #be123c;
+    --danger-bg: rgba(225, 29, 72, 0.07);
+    --danger-border: rgba(190, 18, 60, 0.25);
+    --shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  margin: 0;
+}
+
+body {
+  font-family: var(--font);
+  color: var(--text);
+  background-color: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.brand img {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.07);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.badge.warn {
+  color: var(--warn);
+  border-color: var(--warn-border);
+  background: var(--warn-bg);
+}
+
+.badge.danger {
+  color: var(--danger);
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+}
+
+.button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 11px;
+  background: rgba(148, 163, 184, 0.07);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.button:hover {
+  border-color: var(--accent);
+  background: rgba(45, 212, 191, 0.08);
+}
+
+.button.primary {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--accent-bright), var(--accent));
+  color: var(--accent-ink);
+}
+
+.button.primary:hover {
+  filter: brightness(1.06);
+}
+
+.button.ghost {
+  background: transparent;
+}
+
+.button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.button:focus-visible,
+.choice:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: fdn-spin 0.8s linear infinite;
+}
+
+@keyframes fdn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

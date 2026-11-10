@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Free Domain Name settings</title>
+    <link rel="icon" href="icons/icon32.png" />
+    <link rel="stylesheet" href="ui.css" />
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body class="options">
+    <main class="page">
+      <header class="page-header">
+        <div class="brand">
+          <img src="icons/icon32.png" alt="" width="26" height="26" />
+          Free Domain Name
+        </div>
+      </header>
+      <h1>Settings</h1>
+      <p class="subtitle">
+        The extension reads a public JSON registry over HTTPS. Changes are only applied after the
+        payload passes validation, including a check that no managed TLD is delegated in the real
+        IANA root zone.
+      </p>
+
+      <form id="form" novalidate>
+        <section class="panel">
+          <h2>Registry</h2>
+          <p class="panel-lede">Use the organization repository once it is public, or a raw endpoint you control.</p>
+
+          <label class="field">
+            <span>Registry JSON URL</span>
+            <input id="registry-url" type="url" spellcheck="false" autocomplete="off" required />
+          </label>
+          <p class="hint">
+            HTTPS only. The response is capped at 5 MB and must validate against schema version 1.
+          </p>
+
+          <label class="field">
+            <span>Sync every (minutes)</span>
+            <input id="sync-interval" type="number" min="15" max="1440" step="15" required />
+          </label>
+
+          <label class="check-row">
+            <input id="auto-continue" type="checkbox" />
+            <span>Open safe HTTPS targets automatically after a short notice</span>
+          </label>
+          <label class="check-row">
+            <input id="check-dns" type="checkbox" />
+            <span>Check public DNS over HTTPS for conflicts with the real internet</span>
+          </label>
+
+          <label class="field">
+            <span>DNS-over-HTTPS JSON endpoint</span>
+            <input id="doh-endpoint" type="url" spellcheck="false" autocomplete="off" required />
+          </label>
+          <p class="hint">
+            Cloudflare (<code>https://cloudflare-dns.com/dns-query</code>) and Google
+            (<code>https://dns.google/resolve</code>) work. Loopback HTTP is accepted for local
+            testing only.
+          </p>
+        </section>
+
+        <section class="panel">
+          <h2>Status</h2>
+          <p class="panel-lede">A failed refresh keeps the last valid registry instead of dropping all rules.</p>
+          <dl class="status-grid">
+            <div class="status-item">
+              <dt>Source</dt>
+              <dd id="status-source">—</dd>
+            </div>
+            <div class="status-item">
+              <dt>Last success</dt>
+              <dd id="status-last-success">—</dd>
+            </div>
+            <div class="status-item">
+              <dt>Registered names</dt>
+              <dd id="status-names">—</dd>
+            </div>
+            <div class="status-item">
+              <dt>Wildcard records</dt>
+              <dd id="status-wildcards">—</dd>
+            </div>
+            <div class="status-item">
+              <dt>Last attempt</dt>
+              <dd id="status-last-attempt">—</dd>
+            </div>
+            <div class="status-item">
+              <dt>Last error</dt>
+              <dd id="status-error">—</dd>
+            </div>
+          </dl>
+          <button id="sync-now" class="button" type="button">Sync now</button>
+        </section>
+
+        <div class="form-actions">
+          <button id="save" class="button primary" type="submit">Save settings</button>
+          <button id="reset" class="button ghost" type="button">Reset to defaults</button>
+          <span id="save-status" role="status"></span>
+        </div>
+      </form>
+
+      <p class="fineprint">
+        Permissions: <code>declarativeNetRequest</code> (redirect matching top-level navigations),
+        <code>storage</code>, <code>alarms</code>, and host access for all sites. Host access is
+        required by Chrome to redirect an arbitrary community TLD; no page content is read or
+        modified. The extension only intercepts top-level navigations to TLDs declared by the
+        validated registry.
+      </p>
+    </main>
+    <script src="options.js" type="module"></script>
+  </body>
+</html>

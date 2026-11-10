@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.npm-cache/
+.sandbox/
+coverage/
+.DS_Store
+*.log
+docs/screenshots/*.tmp.png
+.dsh-vision-router/
+web-ext-artifacts/

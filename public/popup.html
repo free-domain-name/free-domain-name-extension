@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Free Domain Name</title>
+    <link rel="icon" href="icons/icon32.png" />
+    <link rel="stylesheet" href="ui.css" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body class="popup">
+    <main class="popup-shell">
+      <header class="popup-header">
+        <div class="brand">
+          <img src="icons/icon32.png" alt="" width="26" height="26" />
+          Free Domain Name
+        </div>
+        <span class="version" id="version"></span>
+      </header>
+
+      <section class="status-panel">
+        <div class="status-head">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="headline">Checking…</span>
+        </div>
+        <p class="status-detail" id="status-detail">Loading registry status…</p>
+
+        <div class="stats">
+          <div class="stat">
+            <strong id="record-count">–</strong>
+            <span>names</span>
+          </div>
+          <div class="stat">
+            <strong id="wildcard-count">–</strong>
+            <span>wildcards</span>
+          </div>
+        </div>
+
+        <label class="switch-row" for="enabled">
+          <span>Interception</span>
+          <input id="enabled" type="checkbox" role="switch" />
+        </label>
+      </section>
+
+      <p class="sync-state" id="sync-state"></p>
+      <div id="notice" class="notice" hidden></div>
+
+      <div class="actions">
+        <button id="sync" class="button primary" type="button">Sync now</button>
+        <button id="options" class="button" type="button">Settings</button>
+      </div>
+
+      <footer class="popup-footer">
+        <a id="repo" href="https://github.com/free-domain-name/registry" target="_blank" rel="noreferrer noopener">
+          Registry on GitHub ↗
+        </a>
+        <span>MV3</span>
+      </footer>
+    </main>
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>

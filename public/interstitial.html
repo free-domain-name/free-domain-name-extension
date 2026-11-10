@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Resolving — Free Domain Name</title>
+    <link rel="icon" href="icons/icon32.png" />
+    <link rel="stylesheet" href="ui.css" />
+    <link rel="stylesheet" href="interstitial.css" />
+  </head>
+  <body class="interstitial">
+    <main class="shell">
+      <div class="topbar">
+        <div class="brand">
+          <img src="icons/icon32.png" alt="" width="26" height="26" />
+          Free Domain Name
+        </div>
+        <span id="source-badge" class="badge" hidden>Registry</span>
+      </div>
+
+      <section class="card" aria-live="polite">
+        <p class="eyebrow" id="eyebrow">Community domain</p>
+        <h1 id="host">…</h1>
+        <p class="lede" id="summary">Looking this name up in the registry…</p>
+
+        <div id="loading" class="loading">
+          <span class="spinner"></span>
+          <span>Checking the registry and public DNS…</span>
+        </div>
+
+        <div id="record" class="record" hidden>
+          <dl class="facts">
+            <div>
+              <dt>Target</dt>
+              <dd id="destination" class="mono">—</dd>
+            </div>
+            <div>
+              <dt>Steward</dt>
+              <dd id="owner">—</dd>
+            </div>
+            <div>
+              <dt>DNS metadata</dt>
+              <dd id="dns-records">—</dd>
+            </div>
+            <div>
+              <dt>Record updated</dt>
+              <dd id="record-updated">—</dd>
+            </div>
+          </dl>
+          <p id="description" class="description" hidden></p>
+        </div>
+
+        <div id="not-found" class="empty" hidden>
+          <h2>No registry record</h2>
+          <p>
+            <code id="missing-host">…</code> was intercepted, but the registry has no current
+            record for it.
+          </p>
+          <p>You can request a record through GitHub. Names are added by pull request and reviewed by maintainers.</p>
+        </div>
+
+        <div id="error" class="error" hidden>
+          <p id="error-text"></p>
+          <button type="button" id="error-back" class="button">Go back</button>
+        </div>
+
+        <div id="warnings" class="warnings" hidden></div>
+
+        <div id="conflict" class="choices" hidden>
+          <p class="warning-text">
+            This name also exists in the public DNS. Choose which destination you trust:
+          </p>
+          <button type="button" id="choose-registry" class="choice choice-primary">
+            <span class="choice-title">Open the registry target</span>
+            <span class="choice-sub" id="registry-sub">—</span>
+          </button>
+          <button type="button" id="choose-public" class="choice">
+            <span class="choice-title">Open the public DNS site</span>
+            <span class="choice-sub" id="public-sub">—</span>
+          </button>
+          <p class="fineprint">
+            The registry is community-maintained. The public DNS answer comes from a
+            DNS-over-HTTPS resolver and is not verified by this extension.
+          </p>
+          <button type="button" id="conflict-stay" class="button ghost">Stay here</button>
+        </div>
+
+        <div id="primary-actions" class="actions" hidden>
+          <button type="button" id="continue" class="button primary">Continue</button>
+          <button type="button" id="stay" class="button ghost">Stay here</button>
+          <p id="countdown" class="countdown" hidden></p>
+        </div>
+
+        <div id="not-found-actions" class="actions" hidden>
+          <a id="request-name" class="button primary" target="_blank" rel="noreferrer noopener">
+            Request this name
+          </a>
+          <button type="button" id="public-button" class="button" hidden>Open public DNS site</button>
+          <button type="button" id="back" class="button ghost">Go back</button>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>Community-maintained records. Not verified by your browser.</span>
+        <a id="registry-link" href="#" target="_blank" rel="noreferrer noopener" hidden>View registry ↗</a>
+      </footer>
+    </main>
+    <script src="interstitial.js" type="module"></script>
+  </body>
+</html>
