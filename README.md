@@ -102,7 +102,7 @@ without shipping a new extension build:
 
 - Registry: <https://github.com/free-domain-name/registry>
 - Client index (what the extension fetches):
-  <https://raw.githubusercontent.com/free-domain-name/registry/main/client.json>
+  <https://raw.githubusercontent.com/free-domain-name/registry/refs/heads/main/client.json>
 - Manifest: [registry/registry.json](registry/registry.json)
 - Client sample: [registry/client.json](registry/client.json)
 - Schema: [registry/schema.json](registry/schema.json)

@@ -10,5 +10,5 @@ export const SESSION_RULE_TTL_MS = 60_000;
 
 export const OFFICIAL_REGISTRY_REPO = "https://github.com/free-domain-name/registry";
 export const DEFAULT_REGISTRY_URL =
-  "https://raw.githubusercontent.com/free-domain-name/registry/main/client.json";
+  "https://raw.githubusercontent.com/free-domain-name/registry/refs/heads/main/client.json";
 export const DEFAULT_DOH_ENDPOINT = "https://cloudflare-dns.com/dns-query";

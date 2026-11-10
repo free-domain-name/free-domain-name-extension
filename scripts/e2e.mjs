@@ -519,7 +519,7 @@ async function main() {
     // 8) Options page. Restore the documented defaults only for the screenshot;
     // the cached sample remains labeled as sample.
     await setSettings(sw, {
-      registryUrl: "https://raw.githubusercontent.com/free-domain-name/registry/main/client.json",
+      registryUrl: "https://raw.githubusercontent.com/free-domain-name/registry/refs/heads/main/client.json",
       dohEndpoint: "https://cloudflare-dns.com/dns-query",
       autoContinue: false,
       checkPublicDns: true,
@@ -541,7 +541,7 @@ async function main() {
     assert(pageExceptions.length === 0, `page exceptions: ${JSON.stringify(pageExceptions.slice(0, 2))}`);
     assert(swExceptions.length === 0, `worker exceptions: ${JSON.stringify(swExceptions.slice(0, 2))}`);
 
-    console.log("\nPASS: arbitrary-domain conflict, registry navigation, non-interception, port-preserving insecure target, public bypass, popup toggle, options");
+    console.log("\nPASS: arbitrary-domain conflict, registry navigation, ipmap target, non-interception, port-preserving insecure target, public bypass, popup toggle, options");
     page.close();
     sw.close();
   } catch (error) {
