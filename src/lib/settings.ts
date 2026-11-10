@@ -29,8 +29,7 @@ export function sanitizeSettings(input: unknown): Settings {
     enabled: typeof raw.enabled === "boolean" ? raw.enabled : DEFAULT_SETTINGS.enabled,
     registryUrl: validateRegistryUrl(raw.registryUrl) ?? DEFAULT_SETTINGS.registryUrl,
     syncIntervalMinutes: clampInterval(raw.syncIntervalMinutes),
-    autoContinue:
-      typeof raw.autoContinue === "boolean" ? raw.autoContinue : DEFAULT_SETTINGS.autoContinue,
+    autoContinue: false,
     checkPublicDns:
       typeof raw.checkPublicDns === "boolean"
         ? raw.checkPublicDns

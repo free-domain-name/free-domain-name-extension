@@ -108,7 +108,8 @@ async function handleResolve(message: ResolveRequest): Promise<ResolveResponse> 
     destination,
     publicDns,
     registry: buildRegistryMeta(cache, settings),
-    autoContinue: settings.autoContinue,
+    // v1 is HTTP-first; the legacy HTTPS auto-open path stays disabled.
+    autoContinue: false,
   };
 }
 

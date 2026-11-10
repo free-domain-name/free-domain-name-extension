@@ -85,7 +85,7 @@ file. Protect `main`, require review, and treat an owner change as a security
 change. The validator cannot know whether a PR author is the owner; GitHub review
 is the authorization boundary.
 
-Sharing an IP or a port is allowed. Only names must be unique.
+Two names may share an IP or a port. Only the name must be unique.
 
 ## Sample records
 

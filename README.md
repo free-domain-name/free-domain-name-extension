@@ -275,7 +275,7 @@ See [SECURITY.md](SECURITY.md) and [docs/architecture.md](docs/architecture.md).
 
 - `npm run typecheck` — strict TypeScript.
 - `npm test` — 29 Vitest tests for validation, destinations, DoH parsing, URL
-  policy, settings, and port-preserving collision cases.
+  policy, settings, target ports, and duplicate-name collisions.
 - `npm run test:e2e` — raw CDP test in Chrome for Testing. Covers arbitrary-domain
   conflict (`google.com`), registry navigation, non-interception of unregistered
   names, HTTP/IP warnings, port preservation, tab-scoped public bypass, popup
