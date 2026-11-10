@@ -76,7 +76,7 @@ function render(response: StatusOk): void {
   el("sync-state").textContent = syncParts.join(" · ");
 
   if (response.resolver.error) {
-    setNotice(`${response.resolver.error} Run “npm run resolver” to enable DNS-like mode.`);
+    setNotice(response.resolver.error);
   } else if (registry?.source === "sample") {
     setNotice(
       "Using bundled demo data. Publish the organization registry, then press Sync now to replace it.",

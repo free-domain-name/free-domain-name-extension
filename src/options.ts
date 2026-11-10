@@ -52,7 +52,7 @@ function renderStatus(
   el("status-resolver").textContent = resolver
     ? resolver.active
       ? `Active on 127.0.0.1:${resolver.port}`
-      : resolver.error ?? "Offline; redirect fallback"
+      : resolver.error ?? "Offline; no interception"
     : "—";
   el("status-error").textContent = status.error ?? "None";
 }

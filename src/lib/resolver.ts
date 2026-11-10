@@ -247,7 +247,7 @@ export async function configureResolver(
     state = {
       active: false,
       port,
-      error: "Local resolver proxy is offline; using the redirect fallback.",
+      error: "Resolver service is offline; no interception is active.",
     };
     return false;
   }
