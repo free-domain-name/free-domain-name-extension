@@ -33,7 +33,7 @@
             <input id="registry-url" type="url" spellcheck="false" autocomplete="off" required />
           </label>
           <p class="hint">
-            HTTPS only. The response is capped at 5 MB and must validate against schema version 1.
+            HTTPS only. The response is capped at 5 MB and must validate against client schema version 2.
           </p>
 
           <label class="field">
@@ -41,10 +41,6 @@
             <input id="sync-interval" type="number" min="15" max="1440" step="15" required />
           </label>
 
-          <label class="check-row">
-            <input id="auto-continue" type="checkbox" />
-            <span>Open safe HTTPS targets automatically after a short notice</span>
-          </label>
           <label class="check-row">
             <input id="check-dns" type="checkbox" />
             <span>Check public DNS over HTTPS for conflicts with the real internet</span>

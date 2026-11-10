@@ -13,5 +13,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Validate registry.json against schema.json
-        run: npx --yes -p ajv-cli@5 -p ajv-formats ajv validate -c ajv-formats -s schema.json -d registry.json --spec=draft2020 --strict=false
+      - name: Validate shard tree and collisions
+        run: node scripts/validate.mjs
+
+      - name: Check generated client is current
+        run: node scripts/build-client.mjs --check
+
+      - name: Validate client.json against schema.json
+        run: npx --yes -p ajv-cli@5 -p ajv-formats ajv validate -c ajv-formats -s schema.json -d client.json --spec=draft2020 --strict=false

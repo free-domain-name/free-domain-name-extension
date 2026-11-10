@@ -34,7 +34,7 @@ Out of scope, by design:
   registry is the trust boundary; review is the control);
 - HTTP targets being readable/modifiable;
 - no TLS for overridden names;
-- loss of original path/query/port;
+- loss of the original request path/query/port (the registry target may specify its own port);
 - a malicious DoH resolver returning false answers.
 
 ## Security model
@@ -45,19 +45,25 @@ Out of scope, by design:
   either side is honest.
 - HTTPS targets use the browser's normal certificate validation. There is no
   custom-TLD certificate.
-- HTTP and IP targets are flagged; auto-continue is disabled for them.
+- HTTP and IP targets are flagged; auto-open is not exposed in v1 and HTTP never auto-opens.
+- Registry records are sharded one file per name. CI rejects duplicate names and
+  files outside the deterministic shard path, so a second record cannot silently
+  overwrite a name. Changing an existing file still requires reviewed PR approval.
 - GPL-3.0-only keeps distributed modifications open source; it is not a security
   boundary.
 
 ## Hardening in v1
 
-- Registry schema validation, duplicate/loop checks, 5 MB cap, 2,000-record cap.
+- Registry schema validation, shard-path/duplicate/loop checks, 5 MB cap,
+  2,000-record client cap.
 - HTTP(S)-only URLs; credentials and non-HTTP schemes rejected.
 - Same-origin registry redirect check.
 - One DNR rule per exact/wildcard record, `main_frame` only.
 - Tab-scoped public bypass session rule, priority above redirects, 60-second TTL.
 - No content scripts and no remote code.
 - Explicit conflict, sample, stale, HTTP, IP, and HTTPS-to-HTTP warnings.
+- Target ports are part of the URL and are preserved by the browser. Two names may
+  share an IP/port; only the name is unique.
 
 ## Registry compromise
 

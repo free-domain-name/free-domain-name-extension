@@ -50,7 +50,6 @@ function renderStatus(status: SyncStatus, registry: RegistryMeta | null): void {
 function fill(settings: Settings): void {
   el<HTMLInputElement>("registry-url").value = settings.registryUrl;
   el<HTMLInputElement>("sync-interval").value = String(settings.syncIntervalMinutes);
-  el<HTMLInputElement>("auto-continue").checked = settings.autoContinue;
   el<HTMLInputElement>("check-dns").checked = settings.checkPublicDns;
   el<HTMLInputElement>("doh-endpoint").value = settings.dohEndpoint;
 }
@@ -60,7 +59,6 @@ function collect(): Partial<Settings> {
   return {
     registryUrl: el<HTMLInputElement>("registry-url").value.trim(),
     syncIntervalMinutes: Number.isFinite(interval) ? interval : DEFAULT_SETTINGS.syncIntervalMinutes,
-    autoContinue: el<HTMLInputElement>("auto-continue").checked,
     checkPublicDns: el<HTMLInputElement>("check-dns").checked,
     dohEndpoint: el<HTMLInputElement>("doh-endpoint").value.trim(),
   };

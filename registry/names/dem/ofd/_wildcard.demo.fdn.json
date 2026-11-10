@@ -1,0 +1,7 @@
+{
+  "name": "*.demo.fdn",
+  "url": "http://example.net/",
+  "owner": "free-domain-name",
+  "description": "Wildcard example: every host under demo.fdn opens example.net.",
+  "updatedAt": "2026-11-10T21:30:00Z"
+}

@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 2,
+  "name": "Free Domain Name community registry",
+  "updatedAt": "2026-11-10T21:30:00Z",
+  "layout": "client-v1",
+  "recordCount": 7,
+  "wildcardCount": 1,
+  "records": [
+    {
+      "name": "*.demo.fdn",
+      "url": "http://example.net/",
+      "owner": "free-domain-name",
+      "description": "Wildcard example: every host under demo.fdn opens example.net.",
+      "updatedAt": "2026-11-10T21:30:00Z"
+    },
+    {
+      "name": "abc.fdn",
+      "url": "http://203.0.113.10/",
+      "a": [
+        "203.0.113.10"
+      ],
+      "owner": "free-domain-name",
+      "description": "Shares an IP with xyz.fdn and insecure.fdn; different ports are allowed.",
+      "updatedAt": "2026-11-10T21:30:00Z"
+    },
+    {
+      "name": "docs.fdn",
+      "url": "http://example.org/",
+      "owner": "free-domain-name",
+      "description": "Documentation example record.",
+      "updatedAt": "2026-11-10T21:30:00Z"
+    },
+    {
+      "name": "google.com",
+      "url": "http://example.com/",
+      "owner": "free-domain-name",
+      "description": "Arbitrary real-domain override demo. It shows the public-DNS conflict flow; remove before production.",
+      "updatedAt": "2026-11-10T21:30:00Z"
+    },
+    {
+      "name": "hello.fdn",
+      "url": "http://example.com/",
+      "owner": "free-domain-name",
+      "description": "Small example record.",
+      "updatedAt": "2026-11-10T21:30:00Z"
+    },
+    {
+      "name": "insecure.fdn",
+      "url": "http://203.0.113.10:8080/",
+      "a": [
+        "203.0.113.10"
+      ],
+      "owner": "free-domain-name",
+      "description": "HTTP/IP-only demo with a non-default port. TEST-NET-3 is not reachable.",
+      "updatedAt": "2026-11-10T21:30:00Z"
+    },
+    {
+      "name": "xyz.fdn",
+      "url": "http://203.0.113.10:8080/",
+      "a": [
+        "203.0.113.10"
+      ],
+      "owner": "free-domain-name",
+      "description": "Same IP as abc.fdn with a different port; allowed because only names must be unique.",
+      "updatedAt": "2026-11-10T21:30:00Z"
+    }
+  ]
+}

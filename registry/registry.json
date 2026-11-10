@@ -1,50 +1,12 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "name": "Free Domain Name community registry",
-  "updatedAt": "2026-11-10T20:30:00Z",
-  "records": [
-    {
-      "name": "google.com",
-      "url": "http://example.com/",
-      "owner": "free-domain-name",
-      "description": "Demo override for an arbitrary real domain. It intentionally shows the public-DNS conflict flow; remove it before production.",
-      "updatedAt": "2026-11-10T20:30:00Z"
-    },
-    {
-      "name": "hello.fdn",
-      "url": "http://example.com/",
-      "owner": "free-domain-name",
-      "description": "Basic demo record used by the extension's offline sample registry.",
-      "updatedAt": "2026-11-10T20:30:00Z"
-    },
-    {
-      "name": "docs.fdn",
-      "url": "http://example.org/",
-      "owner": "free-domain-name",
-      "description": "Documentation demo record; plain HTTP in v1.",
-      "updatedAt": "2026-11-10T20:30:00Z"
-    },
-    {
-      "name": "*.demo.fdn",
-      "url": "http://example.net/",
-      "owner": "free-domain-name",
-      "description": "Wildcard demo: any subdomain below demo.fdn opens example.net.",
-      "updatedAt": "2026-11-10T20:30:00Z"
-    },
-    {
-      "name": "insecure.fdn",
-      "a": ["203.0.113.10"],
-      "url": "http://203.0.113.10:8080/",
-      "owner": "free-domain-name",
-      "description": "HTTP/IP-only demo used to show the insecure-target warning. TEST-NET-3 is not reachable.",
-      "updatedAt": "2026-11-10T20:30:00Z"
-    },
-    {
-      "name": "secure.fdn",
-      "url": "https://example.org/",
-      "owner": "free-domain-name",
-      "description": "HTTPS target demo for the auto-continue path. The certificate is example.org's normal certificate; v1 does not provide custom-TLD TLS.",
-      "updatedAt": "2026-11-10T20:30:00Z"
-    }
-  ]
+  "updatedAt": "2026-11-10T21:30:00Z",
+  "layout": "sharded-v1",
+  "shardLengths": [
+    3,
+    3
+  ],
+  "recordCount": 7,
+  "wildcardCount": 1
 }

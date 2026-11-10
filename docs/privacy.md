@@ -11,7 +11,7 @@ sells no data, and includes no telemetry.
 
 - the cached registry and its ETag/source/fetch time;
 - sync status and the last error;
-- settings (registry URL, interval, auto-continue, DoH endpoint, enable flag).
+- settings (registry URL, interval, DoH endpoint, enable flag).
 
 `storage.session` / memory:
 

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { validateRegistry } from "../src/lib/validation";
 
-const file = process.argv[2] ?? "registry/registry.json";
+const file = process.argv[2] ?? "registry/client.json";
 try {
   const payload: unknown = JSON.parse(readFileSync(file, "utf8"));
   const registry = validateRegistry(payload);

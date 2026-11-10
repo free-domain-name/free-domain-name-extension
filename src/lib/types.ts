@@ -5,7 +5,7 @@
  * carrying the one thing a browser can actually navigate to: a target URL.
  */
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 /** A single name in the registry. */
 export interface RegistryRecord {
@@ -17,7 +17,7 @@ export interface RegistryRecord {
   aaaa: string[];
   /** Canonical DNS name, if any. */
   cname?: string;
-  /** HTTPS/HTTP URL the extension opens. Recommended. */
+  /** HTTP(S) URL the extension opens. Ports are allowed. */
   url?: string;
   /** GitHub handle of the steward, e.g. "octocat". */
   owner: string;
@@ -54,7 +54,7 @@ export interface Settings {
   enabled: boolean;
   registryUrl: string;
   syncIntervalMinutes: number;
-  /** Automatically open a non-conflicting HTTPS target after a short notice. */
+  /** Reserved; v1 defaults to false and does not expose an auto-open control. */
   autoContinue: boolean;
   /** Query public DNS (DoH) to detect conflicts with the real internet. */
   checkPublicDns: boolean;

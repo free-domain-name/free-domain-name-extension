@@ -1,0 +1,10 @@
+{
+  "name": "abc.fdn",
+  "url": "http://203.0.113.10/",
+  "a": [
+    "203.0.113.10"
+  ],
+  "owner": "free-domain-name",
+  "description": "Shares an IP with xyz.fdn and insecure.fdn; different ports are allowed.",
+  "updatedAt": "2026-11-10T21:30:00Z"
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import sampleRegistry from "../registry/registry.json";
+import sampleRegistry from "../registry/client.json";
 import type { Registry, RegistryRecord } from "../src/lib/types";
 import {
   RegistryValidationError,
@@ -15,7 +15,7 @@ import {
 
 function base(overrides: Record<string, unknown> = {}): unknown {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     updatedAt: "2026-11-10T19:00:00Z",
     records: [
       {
@@ -40,11 +40,39 @@ function record(overrides: Record<string, unknown> = {}): Record<string, unknown
 describe("registry validation", () => {
   it("accepts the published sample registry, including a real domain", () => {
     const parsed = validateRegistry(sampleRegistry);
-    expect(parsed.records).toHaveLength(6);
+    expect(parsed.records).toHaveLength(7);
     expect(parsed.records.map((item) => item.name)).toContain("google.com");
     expect(parsed.records.find((item) => item.name === "google.com")?.url).toBe(
       "http://example.com/",
     );
+    expect(parsed.records.find((item) => item.name === "xyz.fdn")?.url).toBe(
+      "http://203.0.113.10:8080/",
+    );
+    expect(parsed.records.find((item) => item.name === "abc.fdn")?.url).toBe(
+      "http://203.0.113.10/",
+    );
+  });
+
+  it("allows the same IP on different ports but rejects duplicate names", () => {
+    const parsed = validateRegistry(
+      base({
+        records: [
+          record({ name: "abc.com", url: "http://1.1.1.1/" }),
+          record({ name: "xyz.com", url: "http://1.1.1.1:8080/" }),
+        ],
+      }),
+    );
+    expect(parsed.records).toHaveLength(2);
+    expect(() =>
+      validateRegistry(
+        base({
+          records: [
+            record({ name: "abc.com", url: "http://1.1.1.1/" }),
+            record({ name: "ABC.com", url: "http://1.1.1.1:8080/" }),
+          ],
+        }),
+      ),
+    ).toThrow(/duplicate/i);
   });
 
   it("normalizes names and wildcards", () => {
@@ -135,7 +163,7 @@ describe("registry validation", () => {
 
 describe("lookup", () => {
   const registry: Registry = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     updatedAt: "2026-11-10T19:00:00Z",
     records: [
       {
@@ -171,7 +199,7 @@ describe("lookup", () => {
 describe("destinations", () => {
   const recordBase: RegistryRecord = { name: "x.fdn", a: [], aaaa: [], owner: "octocat" };
   const registry: Registry = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     updatedAt: "2026-11-10T19:00:00Z",
     records: [recordBase],
   };

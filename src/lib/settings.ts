@@ -12,7 +12,7 @@ export const DEFAULT_SETTINGS: Settings = {
   enabled: true,
   registryUrl: DEFAULT_REGISTRY_URL,
   syncIntervalMinutes: 360,
-  autoContinue: true,
+  autoContinue: false,
   checkPublicDns: true,
   dohEndpoint: DEFAULT_DOH_ENDPOINT,
 };

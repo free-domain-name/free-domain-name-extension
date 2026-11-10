@@ -1,4 +1,4 @@
-import sampleRegistryJson from "../../registry/registry.json";
+import sampleRegistryJson from "../../registry/client.json";
 import { api } from "./api";
 import { MAX_REGISTRY_BYTES } from "./constants";
 import { applyInterceptionRules } from "./rules";
@@ -28,7 +28,7 @@ function isRegistryCache(value: unknown): value is RegistryCache {
     typeof candidate.registry === "object" &&
     candidate.registry !== null &&
     Array.isArray(candidate.registry.records) &&
-    candidate.registry.schemaVersion === 1
+    candidate.registry.schemaVersion === 2
   );
 }
 

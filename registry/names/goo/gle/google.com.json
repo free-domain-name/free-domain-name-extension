@@ -1,0 +1,7 @@
+{
+  "name": "google.com",
+  "url": "http://example.com/",
+  "owner": "free-domain-name",
+  "description": "Arbitrary real-domain override demo. It shows the public-DNS conflict flow; remove before production.",
+  "updatedAt": "2026-11-10T21:30:00Z"
+}

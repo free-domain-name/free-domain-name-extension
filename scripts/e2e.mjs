@@ -369,7 +369,7 @@ async function main() {
     await waitFor(
       "DNR redirect rule",
       async () =>
-        (await sw.eval("chrome.declarativeNetRequest.getDynamicRules().then((rules) => rules.length)")) === 6,
+        (await sw.eval("chrome.declarativeNetRequest.getDynamicRules().then((rules) => rules.length)")) === 7,
     );
 
     // 1) Conflict interstitial for an arbitrary real domain.
@@ -406,27 +406,15 @@ async function main() {
     );
     console.log("Unregistered name was left untouched");
 
-    // 4) HTTP/IP targets must never auto-open, even when autoContinue is on.
-    await setSettings(sw, { autoContinue: true });
+    // 4) HTTP/IP targets show the warning and preserve the target port. The
+    // user must click; there is no auto-open for HTTP.
     await navigate(page, "http://insecure.fdn/");
     await waitForUri(page, (href) => href.includes("/interstitial.html"), 8_000);
     await waitForText(page, "plain HTTP");
     assert((await bodyText(page)).includes("IP address"), "IP targets must show a warning");
-    await sleep(2_600);
-    const afterWait = await page.eval("location.href");
-    assert(afterWait.includes("/interstitial.html"), "insecure target must not auto-open");
+    assert((await bodyText(page)).includes(":8080"), "the target port must be preserved");
     const insecureShot = await screenshot(page, "insecure");
     console.log(`Screenshot: ${insecureShot}`);
-
-    // 5) A safe HTTPS target with no public-DNS conflict auto-continues in a
-    // visible tab (autoContinue is still enabled from the previous step).
-    const visibility = await page.eval("document.visibilityState");
-    assert(visibility === "visible", `headless tab should be visible, got ${visibility}`);
-    await navigate(page, "http://secure.fdn/");
-    await waitForUri(page, (href) => href.includes("/interstitial.html"), 8_000);
-    await waitForUri(page, (href) => href === "https://example.org/", 10_000);
-    console.log("Safe HTTPS target auto-continued to https://example.org/");
-    await setSettings(sw, { autoContinue: false });
 
     // Extension pages cannot be navigated to from a web/untrusted page. Open
     // them the way the browser does: from the extension itself.
@@ -488,7 +476,7 @@ async function main() {
       8_000,
     );
     assert(
-      (await popup.connection.eval("document.getElementById('record-count').textContent")) === "6",
+      (await popup.connection.eval("document.getElementById('record-count').textContent")) === "7",
       "popup record count",
     );
     assert(
@@ -516,7 +504,7 @@ async function main() {
     await waitFor(
       "rules restored",
       async () =>
-        (await sw.eval("chrome.declarativeNetRequest.getDynamicRules().then((rules) => rules.length)")) === 6,
+        (await sw.eval("chrome.declarativeNetRequest.getDynamicRules().then((rules) => rules.length)")) === 7,
     );
     console.log("Toggle cleared and restored the DNR rules");
     await sw.eval(`chrome.tabs.remove(${popup.tabId})`).catch(() => {});
@@ -525,7 +513,7 @@ async function main() {
     // 8) Options page. Restore the documented defaults only for the screenshot;
     // the cached sample remains labeled as sample.
     await setSettings(sw, {
-      registryUrl: "https://raw.githubusercontent.com/free-domain-name/registry/main/registry.json",
+      registryUrl: "https://raw.githubusercontent.com/free-domain-name/registry/main/client.json",
       dohEndpoint: "https://cloudflare-dns.com/dns-query",
       autoContinue: false,
       checkPublicDns: true,
@@ -547,7 +535,7 @@ async function main() {
     assert(pageExceptions.length === 0, `page exceptions: ${JSON.stringify(pageExceptions.slice(0, 2))}`);
     assert(swExceptions.length === 0, `worker exceptions: ${JSON.stringify(swExceptions.slice(0, 2))}`);
 
-    console.log("\nPASS: arbitrary-domain conflict, registry navigation, non-interception, insecure target, auto-continue, public bypass, popup toggle, options");
+    console.log("\nPASS: arbitrary-domain conflict, registry navigation, non-interception, port-preserving insecure target, public bypass, popup toggle, options");
     page.close();
     sw.close();
   } catch (error) {
