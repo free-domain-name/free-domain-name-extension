@@ -41,7 +41,7 @@ jobs:
         run: npx --yes web-ext@10.8.0 lint --source-dir dist --no-input
 
       - name: Upload build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: extension-dist
           path: dist/
