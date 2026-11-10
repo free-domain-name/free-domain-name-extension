@@ -57,7 +57,9 @@ Load the **same `dist/` directory** in either browser:
 
 The extension checks `http://127.0.0.1:8787/__health` during sync and settings
 changes. When the proxy answers, it installs the PAC/`proxy.onRequest` route and
-clears the redirect rules. When it does not, it keeps the fallback.
+clears the redirect rules. When it does not, it reports `Resolver offline` and
+leaves registered names un-intercepted. Redirects are only used if you explicitly
+uncheck **Use the local HTTP resolver proxy**.
 
 Use **Settings → Sync now** after starting or stopping the proxy.
 
@@ -146,9 +148,9 @@ Copy [registry/](registry/) to the root of `free-domain-name/registry`, commit, 
 push. Registry CI runs the shard validator, client freshness check, and JSON Schema
 validation.
 
-## Fallback mode
+## Fallback mode (opt-in)
 
-If the local proxy is offline (or disabled in Settings), the extension uses the
+If you uncheck **Use the local HTTP resolver proxy**, the extension uses the
 original `declarativeNetRequest` path:
 
 - one redirect rule per record;
@@ -156,14 +158,15 @@ original `declarativeNetRequest` path:
 - a real-domain conflict offers registry vs public DNS;
 - the URL changes to the target.
 
-The popup reports `Redirect fallback`. This mode is intentionally retained so the
-extension still functions before the companion proxy is installed. It is not the
-DNS-like behavior; the local proxy is.
+The popup reports `Redirect fallback`. This mode is intentionally retained for
+compatibility, but it is not the default and it is not the DNS-like behavior.
 
 ## Boundaries
 
 - **A browser extension cannot do this alone.** It cannot listen on a socket or
   answer DNS. The resolver requires the loopback proxy in [resolver/](resolver/).
+  With resolver mode enabled and no proxy, registered names are left untouched and
+  the popup says `Resolver offline`; it does not silently redirect.
 - **HTTP only.** HTTPS requests do not enter the resolver. There is no custom-TLD
   TLS.
 - **The proxy is local.** It binds to `127.0.0.1` and sees the HTTP requests it

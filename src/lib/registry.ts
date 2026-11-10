@@ -1,7 +1,6 @@
 import sampleRegistryJson from "../../registry/client.json";
 import { api } from "./api";
 import { MAX_REGISTRY_BYTES } from "./constants";
-import { applyInterceptionRules } from "./rules";
 import { getSettings } from "./settings";
 import type {
   Registry,
@@ -149,7 +148,6 @@ async function performSync(): Promise<SyncStatus> {
   const attemptedAt = Date.now();
 
   if (!settings.enabled) {
-    await applyInterceptionRules([], false);
     const status: SyncStatus = {
       lastAttemptAt: attemptedAt,
       lastSuccessAt: previous.lastSuccessAt,
@@ -188,12 +186,6 @@ async function performSync(): Promise<SyncStatus> {
 
   const source: RegistrySource | null = next?.source ?? null;
   const success = next !== null && (source === "remote" || source === "sample");
-
-  try {
-    await applyInterceptionRules(next?.registry.records ?? [], settings.enabled);
-  } catch (ruleError) {
-    error = `${error ?? "Rule update failed"}: ${errorMessage(ruleError)}`;
-  }
 
   const status: SyncStatus = {
     lastAttemptAt: attemptedAt,

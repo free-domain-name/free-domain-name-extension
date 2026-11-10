@@ -53,11 +53,17 @@ function render(response: StatusOk): void {
     el("status-detail").textContent = `${sourceLabel(registry)} · ${registry.recordCount} ${
       registry.recordCount === 1 ? "name" : "names"
     } · DNS-like proxy on 127.0.0.1:${response.resolver.port}`;
-  } else {
-    el("headline").textContent = registry.source === "sample" ? "Sample registry active" : "Interception active";
+  } else if (!settings.resolverEnabled) {
+    el("headline").textContent =
+      registry.source === "sample" ? "Sample registry active" : "Interception active";
     el("status-detail").textContent = `${sourceLabel(registry)} · ${registry.recordCount} ${
       registry.recordCount === 1 ? "name" : "names"
     } · redirect fallback`;
+  } else {
+    el("headline").textContent = "Resolver offline";
+    el("status-detail").textContent = `${sourceLabel(registry)} · ${registry.recordCount} ${
+      registry.recordCount === 1 ? "name" : "names"
+    } · no interception`;
   }
 
   el("record-count").textContent = registry ? String(registry.recordCount) : "0";

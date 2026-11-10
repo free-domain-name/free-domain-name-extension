@@ -53,8 +53,11 @@ at the target are rewritten to the original name.
 
 ## Request flow: fallback mode
 
-If `http://127.0.0.1:<port>/__health` does not answer, the extension clears its PAC
-(or leaves the Firefox listener direct) and installs DNR redirect rules:
+Redirect fallback is opt-in: uncheck the resolver proxy setting. If the resolver is
+enabled and `http://127.0.0.1:<port>/__health` does not answer, the extension clears
+its PAC (or leaves the Firefox listener direct), clears DNR rules, and reports
+`Resolver offline`. It does not silently redirect. With the resolver setting off, it
+installs DNR redirect rules:
 
 ```text
 http://google.com/
@@ -64,8 +67,8 @@ http://google.com/
   -> user choice -> normal navigation
 ```
 
-The popup says `Redirect fallback`; this is not the resolver behavior. It exists so
-the extension still works before the local companion is running.
+The popup says `Redirect fallback`; this is not the resolver behavior. It is retained
+as an explicit compatibility option, not the default.
 
 ## Proxy details
 
@@ -177,7 +180,8 @@ answer, matching DNS semantics.
 | --- | --- |
 | Registry 404/500/timeout | Keep last cache; sample only if no cache |
 | Invalid remote JSON | Keep last cache; status error |
-| Resolver health offline | Clear extension PAC, use DNR fallback |
+| Resolver health offline, resolver enabled | Clear extension PAC; no DNR rules; status offline |
+| Resolver setting off | Use DNR redirect fallback |
 | Proxy registry load failure | Keep last proxy records; health still reports error |
 | Proxy target failure | HTTP 502 |
 | HTTPS request | `DIRECT`; not proxied |

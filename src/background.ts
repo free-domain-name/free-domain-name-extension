@@ -62,8 +62,18 @@ async function applyInterception(settings: Settings): Promise<void> {
   }
   const cache = await readRegistryCache();
   const active = await configureResolver(settings, cache?.registry.records ?? []);
-  // The resolver proxy and the redirect rules are mutually exclusive.
-  await applyInterceptionRules(active ? [] : (cache?.registry.records ?? []), !active);
+  // The resolver proxy and the redirect rules are mutually exclusive. When the
+  // resolver is enabled but offline, do not silently become a redirector: clear
+  // the rules and let the popup report that the local proxy is unavailable.
+  if (active) {
+    await applyInterceptionRules([], false);
+    return;
+  }
+  if (!settings.resolverEnabled) {
+    await applyInterceptionRules(cache?.registry.records ?? [], true);
+    return;
+  }
+  await applyInterceptionRules([], false);
 }
 
 async function bootstrap(): Promise<void> {

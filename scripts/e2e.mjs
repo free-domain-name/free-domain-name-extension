@@ -351,7 +351,8 @@ async function main() {
         checkPublicDns: true,
         registryUrl: "http://127.0.0.1:${dohPort}/registry-missing.json",
         dohEndpoint: "http://127.0.0.1:${dohPort}/dns-query",
-        syncIntervalMinutes: 360
+        syncIntervalMinutes: 360,
+        resolverEnabled: false
       }
     })`);
     assert(setupResult?.ok === true, `setup save failed: ${JSON.stringify(setupResult)}`);
@@ -471,7 +472,7 @@ async function main() {
     console.log("Public bypass added and removed a tab-scoped session rule");
 
     // 7) Popup + toggle plumbing.
-    await setSettings(sw, { autoContinue: false });
+    await setSettings(sw, { autoContinue: false, resolverEnabled: false });
     const popup = await openExtensionPage("popup.html", 380, 640);
     await waitFor(
       "popup status",
@@ -523,6 +524,7 @@ async function main() {
       dohEndpoint: "https://cloudflare-dns.com/dns-query",
       autoContinue: false,
       checkPublicDns: true,
+      resolverEnabled: false,
     });
     const options = await openExtensionPage("options.html", 1100, 1200);
     await waitForText(options.connection, "Settings");
