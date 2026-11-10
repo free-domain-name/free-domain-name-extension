@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "name": "Free Domain Name community registry",
-  "updatedAt": "2026-11-10T21:30:00Z",
+  "updatedAt": "2026-11-10T21:28:00Z",
   "layout": "client-v1",
-  "recordCount": 7,
+  "recordCount": 8,
   "wildcardCount": 1,
   "records": [
     {
@@ -53,6 +53,13 @@
       "owner": "free-domain-name",
       "description": "HTTP/IP-only demo with a non-default port. TEST-NET-3 is not reachable.",
       "updatedAt": "2026-11-10T21:30:00Z"
+    },
+    {
+      "name": "ipmap.info",
+      "url": "http://ipmap.vitrn.com/",
+      "owner": "ozkanpakdil",
+      "description": "ipmap.info points at ipmap.vitrn.com.",
+      "updatedAt": "2026-11-10T21:28:00Z"
     },
     {
       "name": "xyz.fdn",

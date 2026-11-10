@@ -369,7 +369,7 @@ async function main() {
     await waitFor(
       "DNR redirect rule",
       async () =>
-        (await sw.eval("chrome.declarativeNetRequest.getDynamicRules().then((rules) => rules.length)")) === 7,
+        (await sw.eval("chrome.declarativeNetRequest.getDynamicRules().then((rules) => rules.length)")) === 8,
     );
 
     // 1) Conflict interstitial for an arbitrary real domain.
@@ -406,7 +406,13 @@ async function main() {
     );
     console.log("Unregistered name was left untouched");
 
-    // 4) HTTP/IP targets show the warning and preserve the target port. The
+    // 4) A newly registered name points at its target hostname.
+    await navigate(page, "http://ipmap.info/");
+    await waitForUri(page, (href) => href.includes("/interstitial.html"), 8_000);
+    await waitForText(page, "ipmap.vitrn.com");
+    console.log("ipmap.info resolved to http://ipmap.vitrn.com/");
+
+    // 5) HTTP/IP targets show the warning and preserve the target port. The
     // user must click; there is no auto-open for HTTP.
     await navigate(page, "http://insecure.fdn/");
     await waitForUri(page, (href) => href.includes("/interstitial.html"), 8_000);
@@ -476,7 +482,7 @@ async function main() {
       8_000,
     );
     assert(
-      (await popup.connection.eval("document.getElementById('record-count').textContent")) === "7",
+      (await popup.connection.eval("document.getElementById('record-count').textContent")) === "8",
       "popup record count",
     );
     assert(
@@ -504,7 +510,7 @@ async function main() {
     await waitFor(
       "rules restored",
       async () =>
-        (await sw.eval("chrome.declarativeNetRequest.getDynamicRules().then((rules) => rules.length)")) === 7,
+        (await sw.eval("chrome.declarativeNetRequest.getDynamicRules().then((rules) => rules.length)")) === 8,
     );
     console.log("Toggle cleared and restored the DNR rules");
     await sw.eval(`chrome.tabs.remove(${popup.tabId})`).catch(() => {});

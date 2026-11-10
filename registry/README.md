@@ -21,6 +21,7 @@ names/
   ins/ecu/insecure.fdn.json
   abc/fdn/abc.fdn.json
   xyz/fdn/xyz.fdn.json
+  ipm/api/ipmap.info.json
 ```
 
 The shard path is deterministic. Dots are removed from the name, then the first
@@ -96,6 +97,7 @@ Two names may share an IP or a port. Only the name must be unique.
 - `insecure.fdn` -> `http://203.0.113.10:8080/`: HTTP/IP warning and port demo.
 - `abc.fdn` -> `http://203.0.113.10/` and `xyz.fdn` ->
   `http://203.0.113.10:8080/`: same IP, different ports; both allowed.
+- `ipmap.info` -> `http://ipmap.vitrn.com/`: a normal hostname target.
 
 ## Adding a name
 

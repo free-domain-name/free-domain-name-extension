@@ -33,6 +33,7 @@ Example with the sample registry:
 http://google.com/   -> conflict: public DNS exists -> choose example.com or public google.com
 http://hello.fdn/    -> registry record -> http://example.com/
 http://docs.fdn/     -> registry record -> http://example.org/
+http://ipmap.info/   -> http://ipmap.vitrn.com/
 http://abc.fdn/      -> http://203.0.113.10/      (port 80)
 http://xyz.fdn/      -> http://203.0.113.10:8080/ (same IP, different port)
 http://insecure.fdn/ -> HTTP/IP warning -> never opens automatically
@@ -122,6 +123,7 @@ registry/
     ins/ecu/insecure.fdn.json
     abc/fdn/abc.fdn.json
     xyz/fdn/xyz.fdn.json
+    ipm/api/ipmap.info.json
 ```
 
 The path is deterministic: remove dots from the name, use the first three
