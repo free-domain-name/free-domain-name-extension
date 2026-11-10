@@ -85,7 +85,7 @@ Load the **same `dist/` directory** in either browser:
 For a reproducible Firefox check:
 
 ```bash
-npx --yes web-ext lint --source-dir dist --no-input
+npx --yes web-ext@10.8.0 lint --source-dir dist --no-input
 ```
 
 The manifest declares both `background.service_worker` (Chrome) and
