@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
   "name": "Free Domain Name community registry",
-  "updatedAt": "2026-11-10T21:28:00Z",
+  "updatedAt": "2026-11-10T21:55:00Z",
   "layout": "sharded-v1",
   "shardLengths": [
     3,
     3
   ],
-  "recordCount": 8,
+  "recordCount": 9,
   "wildcardCount": 1
 }

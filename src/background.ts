@@ -17,6 +17,7 @@ import {
   cleanupSessionRule,
   clearSessionRules,
 } from "./lib/rules";
+import { getResolverState, configureResolver, disableResolver } from "./lib/resolver";
 import { getSettings, saveSettings } from "./lib/settings";
 import type {
   BypassRequest,
@@ -53,11 +54,24 @@ async function ensureSyncAlarm(settings: Settings, recreate = false): Promise<vo
   });
 }
 
+async function applyInterception(settings: Settings): Promise<void> {
+  if (!settings.enabled) {
+    await disableResolver();
+    await applyInterceptionRules([], false);
+    return;
+  }
+  const cache = await readRegistryCache();
+  const active = await configureResolver(settings, cache?.registry.records ?? []);
+  // The resolver proxy and the redirect rules are mutually exclusive.
+  await applyInterceptionRules(active ? [] : (cache?.registry.records ?? []), !active);
+}
+
 async function bootstrap(): Promise<void> {
   try {
     const settings = await getSettings();
     await ensureSyncAlarm(settings, true);
     await syncRegistry();
+    await applyInterception(await getSettings());
   } catch (error) {
     console.error("[fdn] Bootstrap failed", error);
   }
@@ -74,6 +88,7 @@ async function statusResponse(): Promise<StatusResponse> {
     settings,
     status,
     registry: cache ? buildRegistryMeta(cache, settings) : null,
+    resolver: getResolverState(),
   };
 }
 
@@ -147,12 +162,13 @@ async function handleBypass(
 async function handleToggle(message: ToggleRequest): Promise<StatusResponse> {
   const saved = await saveSettings({ enabled: message.enabled });
   if (!saved.enabled) {
+    await disableResolver();
     await applyInterceptionRules([], false);
     await clearSessionRules();
   } else {
     const cache = await readRegistryCache();
-    if (cache) await applyInterceptionRules(cache.registry.records, true);
-    else await syncRegistry();
+    if (!cache) await syncRegistry();
+    await applyInterception(saved);
   }
   return statusResponse();
 }
@@ -174,7 +190,7 @@ async function handleSaveSettings(message: SaveSettingsRequest): Promise<SaveSet
 
   let status;
   if (!saved.enabled) {
-    await applyInterceptionRules([], false);
+    await applyInterception(saved);
     await clearSessionRules();
     status = await readSyncStatus();
   } else if (
@@ -183,12 +199,12 @@ async function handleSaveSettings(message: SaveSettingsRequest): Promise<SaveSet
     !(await readRegistryCache())
   ) {
     status = await syncRegistry();
+    await applyInterception(saved);
   } else {
-    // Non-registry settings (auto-continue, DoH, interval) do not need a
-    // network round-trip. Re-apply the cached rules so a failed earlier apply
-    // can recover without forcing a sync.
-    const cache = await readRegistryCache();
-    if (cache) await applyInterceptionRules(cache.registry.records, true);
+    // Non-registry settings (DoH, interval, resolver) do not need a network
+    // round-trip. Re-apply the selected interception path so a failed earlier
+    // apply can recover without forcing a sync.
+    await applyInterception(saved);
     status = await readSyncStatus();
   }
 
@@ -205,6 +221,7 @@ async function handleSync(): Promise<SyncResponse> {
   const settings = await getSettings();
   await ensureSyncAlarm(settings, true);
   const status = await syncRegistry();
+  await applyInterception(await getSettings());
   const cache = await readRegistryCache();
   return {
     ok: true,
@@ -258,7 +275,10 @@ api.runtime.onStartup.addListener(() => {
 
 api.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === REGISTRY_SYNC_ALARM) {
-    void syncRegistry().catch((error) => console.error("[fdn] Scheduled sync failed", error));
+    void syncRegistry()
+      .then(() => getSettings())
+      .then((settings) => applyInterception(settings))
+      .catch((error) => console.error("[fdn] Scheduled sync failed", error));
     return;
   }
   if (alarm.name.startsWith(SESSION_RULE_CLEANUP_PREFIX)) {

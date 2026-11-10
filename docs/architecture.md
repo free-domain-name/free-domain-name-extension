@@ -1,42 +1,94 @@
 # Architecture
 
-This document describes v1's components, per-record DNR model, sync/cache behavior,
-conflict handling, failure modes, and threat model. For setup, see the
-[README](../README.md).
+This document describes the resolver, its local HTTP proxy, the DNR fallback, sync
+and cache behavior, and the threat model. For setup, see the [README](../README.md)
+and [resolver/README.md](../resolver/README.md).
 
 ## Components
 
 | Component | Responsibility |
 | --- | --- |
-| `src/background.ts` | Sync, DNR rules, settings, resolve/bypass/toggle messages. |
-| `src/interstitial.ts` | Consent, record facts, warnings, conflict choice. |
-| `src/popup.ts` | Status, name/wildcard counts, enable toggle, sync. |
-| `src/options.ts` | Registry URL, interval, DoH endpoint, status. |
+| `src/background.ts` | Sync, resolver/DNR selection, settings, messages. |
+| `src/lib/resolver.ts` | Health check, PAC generation, Chrome `proxy.settings`, Firefox `proxy.onRequest`. |
+| `resolver/proxy.mjs` | Loopback HTTP resolver: registry lookup, target connect, Host, response rewrite. |
+| `src/interstitial.ts` | Fallback consent screen, warnings, public-DNS conflict choice. |
+| `src/popup.ts` | Resolver/fallback status, counts, enable toggle, sync. |
+| `src/options.ts` | Registry URL, interval, DoH, resolver toggle/port, status. |
 | `src/lib/validation.ts` | Pure registry validation, lookup, destinations, loop checks. |
-| `src/lib/rules.ts` | One redirect rule per record; tab-scoped session allow rule. |
-| `src/lib/registry.ts` | Fetch, ETag, size cap, cache, sample fallback, apply rules. |
+| `src/lib/rules.ts` | DNR redirect rules and tab-scoped public bypass. |
+| `src/lib/registry.ts` | Fetch, ETag, size cap, cache, sample fallback, rule apply. |
 | `src/lib/doh.ts` | DoH A/AAAA conflict checks and short cache. |
-| `src/lib/api.ts` | `browser` (Firefox) / `chrome` (Chrome) promise alias. |
 | `registry/` | Sharded source records, generated client, validator, schema, CI. |
 
-## Request flow
+## Request flow: resolver mode
 
 ```text
-navigation to registered host
-  -> DNR redirects main_frame to:
-     chrome-extension://.../interstitial.html?scheme=https&host=google.com
-  -> interstitial sends {type:"resolve", host, scheme} to the background
-  -> background looks up the record and queries DoH
-  -> interstitial renders one of:
-       resolved / conflict / no-record / error
-  -> user clicks the registry target or the public DNS site
+browser navigation to http://abc.com/
+  -> PAC (Chrome) or proxy.onRequest (Firefox)
+  -> only registry-managed HTTP names -> 127.0.0.1:8787
+  -> resolver proxy lookup
+  -> target 89.58.37.84:9094
+  -> Host: abc.com
+  -> target response streamed back
+  -> browser URL stays http://abc.com/
 ```
 
-The interstitial is a packaged extension page listed in
-`web_accessible_resources`. DNR cannot query the registry at request time, so every
-match lands here first.
+The extension never sees the page content. It only configures the browser's proxy
+routing. The proxy is the component that owns target selection, DNS resolution of a
+target hostname, Host selection, and response header rewriting.
 
-## DNR rules
+### Target semantics
+
+| Record | Connect | Upstream `Host` | Browser URL |
+| --- | --- | --- | --- |
+| `url` with IP literal + port | IP:port | original request `Host` | original name |
+| `url` with hostname | DNS(hostname):port | target hostname (+ port) | original name |
+| `cname` | DNS(cname):80 | cname | original name |
+| `a[0]` fallback | address:80 | original request `Host` | original name |
+
+An IP/port target is DNS-like: the requested name is the identity. A hostname
+target is a reverse-proxy target: the target host selects its virtual host, while
+the browser keeps the registry name. `Location` and `Set-Cookie` domains that point
+at the target are rewritten to the original name.
+
+## Request flow: fallback mode
+
+If `http://127.0.0.1:<port>/__health` does not answer, the extension clears its PAC
+(or leaves the Firefox listener direct) and installs DNR redirect rules:
+
+```text
+http://google.com/
+  -> DNR main_frame redirect
+  -> chrome-extension://.../interstitial.html?scheme=http&host=google.com
+  -> resolve message, optional DoH conflict
+  -> user choice -> normal navigation
+```
+
+The popup says `Redirect fallback`; this is not the resolver behavior. It exists so
+the extension still works before the local companion is running.
+
+## Proxy details
+
+`resolver/proxy.mjs` is dependency-free Node 22:
+
+- listens on `127.0.0.1:8787` by default;
+- loads the generated client from the configured URL or a local `--registry` file;
+- refreshes the registry every 60 seconds, retaining the last good copy on failure;
+- serves `/__health` with CORS for the extension;
+- forwards only HTTP; HTTPS is `DIRECT` and never enters the proxy;
+- streams request/response bodies, strips hop-by-hop headers, and sets
+  `connection: close`;
+- returns 502 on target failure and 501 for non-HTTP requests.
+
+The extension generates a PAC script containing only the current exact/wildcard
+names. Chrome installs it with `chrome.proxy.settings`; Firefox uses
+`browser.proxy.onRequest` and returns `127.0.0.1:<port>` for matching HTTP URLs.
+Both paths are mutually exclusive with DNR redirects.
+
+Proxy settings are only cleared if the PAC contains the extension's marker, so a
+user-configured proxy is not overwritten.
+
+## DNR fallback
 
 For each record, `applyInterceptionRules` installs:
 
@@ -53,35 +105,12 @@ Wildcard record `*.demo.fdn` becomes:
 ^(https?)://([^/?#]+\.demo\.fdn)(?::\d+)?(?:[/?#][^\s]*)?$
 ```
 
-Details:
+Exact records have priority `1000`; wildcards use `100 + label count`. Rules are
+`main_frame` only. One rule per record means adding `google.com` does not intercept
+every `.com`. The fallback is capped at 2,000 records because DNR is bounded.
 
-- The regex matches the whole URL because DNR appends unmatched text to a regex
-  substitution.
-- Exact records have priority `1000`; wildcards use `100 + label count`, so a more
-  specific wildcard wins over a broader one. Exact always wins.
-- Rules are only `main_frame`; embedded images/scripts are not hijacked.
-- One rule per record means `google.com` can be added without intercepting every
-  `.com` site. It also caps v1 at 2,000 records, below the browser's dynamic-rule
-  limit. A destination URL may carry a port such as `:8080`; the port is part of
-  the target and is preserved by the browser.
-- Rule IDs are assigned from the current record order; a sync removes all existing
-  dynamic rules and adds the new set.
-
-### Public DNS bypass
-
-The bypass creates a **session** rule:
-
-```text
-tabIds: [currentTab]
-requestDomains: ["google.com"]
-resourceTypes: ["main_frame"]
-action: allow
-priority: 5000
-```
-
-The priority is deliberately above exact-record redirects (1000). Without it, the
-redirect would win and the user would bounce back to the interstitial. An alarm
-removes the rule after 60 seconds. Session rules are not persisted to disk.
+The public bypass is a session rule with `tabIds`, `requestDomains`, priority
+`5000`, and a 60-second cleanup alarm.
 
 ## Registry source and sync
 
@@ -91,11 +120,9 @@ The reviewable source is sharded one record per file:
 names/<first3>/<next3>/<name>.json
 ```
 
-`recordPath()` is deterministic (dots removed, then 3 + 3 characters). A shard
-file contains exactly one record. The CI checks the path, duplicate names, ports,
-URLs, IPs, and target loops. `client.json` is generated from those files for the
-browser and is never hand-edited. This keeps PR diffs small and avoids one central
-record file while still giving DNR a bounded list.
+`recordPath()` is deterministic (dots removed, 3 + 3 characters). CI checks the
+path, duplicate names, ports, URLs, IPs, and target loops. `client.json` is
+generated and never hand-edited.
 
 ```text
 onInstalled / onStartup / alarm / manual Sync
@@ -105,122 +132,92 @@ onInstalled / onStartup / alarm / manual Sync
   -> same-origin redirect check
   -> validateRegistry
   -> cache in storage.local
-  -> replace dynamic rules
+  -> configure resolver or apply DNR fallback
   -> write syncStatus
 ```
 
-- A failed fetch keeps the last valid cache and its rules.
-- If there is no cache, the bundled sample is validated and used, labelled
-  `source: "sample"`.
-- A 304 reuses the remote cache and refreshes `fetchedAt`.
-- Changing the registry URL clears the cache, sync status, and session rules so
-  records from two endpoints cannot mix.
-- Non-registry settings changes reapply cached rules without a network round trip.
+A failed fetch keeps the last valid cache. If there is no cache, the bundled sample
+is validated and used as `source: "sample"`. A 304 reuses the remote cache. Changing
+the registry URL clears the cache, sync status, and session rules.
 
 ## Validation
 
-`validateRegistry` is pure and runs in unit tests, the extension, and the CLI. The
-registry repository's `scripts/validate.mjs` independently checks the sharded
-source: every file must sit at the path derived from its name, duplicate names are
-rejected, and manifest counts must match. That is the collision/overwrite guard.
+`validateRegistry` is pure and runs in unit tests, the extension, and the CLI. It
+rejects wrong schema, duplicate names, malformed dates/names, `*.com`, mid-name
+wildcards, invalid addresses, unsafe URLs, records with no target, and target loops.
+It deliberately allows real IANA names.
 
-`validateRegistry` rejects:
+The registry repository's `scripts/validate.mjs` independently validates the source
+tree: every file must sit at its derived path, duplicate names are rejected, and
+manifest counts must match. That is the collision/overwrite guard.
 
-- wrong schema version or malformed dates;
-- duplicate normalized names;
-- names without a dot, and `*.com`-style wildcard-over-TLD;
-- mid-name wildcards;
-- invalid IPv4/IPv6 literals;
-- URLs with non-HTTP(S) schemes or credentials;
-- records with no destination;
-- targets that this same registry also intercepts (redirect chains/loops).
-
-It deliberately does **not** reject real IANA names. `google.com` is allowed. The
-shard validator also allows two names to share an IP and port; only names must be
-unique.
-
-## Conflict states
+## Conflict states (fallback only)
 
 | DoH result | Behavior |
 | --- | --- |
-| `none` | Registry result; user confirms the target |
-| `exists` | Conflict screen; choose registry or public |
+| `none` | Registry result; user confirms |
+| `exists` | Conflict screen; registry or public |
 | `error` | Registry result; conflict unverified |
 | `disabled` | Registry result; public bypass unavailable |
 
-DoH answers are cached in memory/session for 10 minutes on success only. Errors are
-never cached. A and AAAA are queried in parallel.
-
-## Auto-open
-
-Auto-open is not exposed in the v1 settings UI and defaults to disabled. The legacy
-code path is HTTPS-only; HTTP, IP, conflict, disabled, and error paths never
-auto-open. The HTTP-first sample therefore always waits for a click.
+Resolver mode does not perform DoH conflict checks; the registry record is the
+answer, matching DNS semantics.
 
 ## Firefox / Chrome
 
-The same bundle targets both:
-
-- Chrome 121+ uses `background.service_worker` and ignores `background.scripts`.
-- Firefox 140+ uses `background.scripts` and ignores the service worker.
-- `src/lib/api.ts` selects `browser` when present, otherwise `chrome`; the MV3
-  methods used here return promises in both.
-- DNR, storage.session, alarms, and tab-scoped session rules are shared.
+- Chrome 121+ uses `background.service_worker` and `chrome.proxy.settings` + PAC.
+- Firefox 140+ uses `background.scripts` and `browser.proxy.onRequest`.
+- Firefox ignores `background.service_worker` (expected lint warning).
+- `src/lib/api.ts` selects `browser` when present, otherwise `chrome`.
 - `browser_specific_settings.gecko.data_collection_permissions` declares `none`.
-
-`web-ext lint` warns that Firefox ignores the service-worker key; this is expected.
 
 ## Failure behavior
 
 | Failure | Result |
 | --- | --- |
 | Registry 404/500/timeout | Keep last cache; sample only if no cache |
-| Invalid remote JSON | Keep last cache; validation error in status |
-| Invalid sample | No rules; explicit error |
+| Invalid remote JSON | Keep last cache; status error |
+| Resolver health offline | Clear extension PAC, use DNR fallback |
+| Proxy registry load failure | Keep last proxy records; health still reports error |
+| Proxy target failure | HTTP 502 |
+| HTTPS request | `DIRECT`; not proxied |
 | DNR update failure | Status error; previous rules may remain |
-| DoH timeout/error | Registry page; conflict unverified |
 | Target loop | Rejected at validation time |
-| Target is IP | HTTP fallback; warning |
-| `https` request to `http` target | Warning |
+| Target is IP | Resolver uses IP:port; fallback warns |
 
 ## Threat model
 
-The registry is the trust boundary. A merged record can redirect any registered
-domain, including a real one. Mitigations are transparent PR review, branch
-protection, conflict UI, HTTP warnings, and GPL-3.0-only distribution. There is no
-cryptographic proof that a record is legitimate.
+The registry is the trust boundary. A merged record can point any registered name
+at any target. Mitigations are PR review, branch protection, transparent shard
+diffs, explicit fallback UI, and GPL-3.0-only distribution.
 
-The extension itself:
+The local proxy is privileged: it sees HTTP traffic for names it handles and can
+connect to arbitrary targets. It binds only to `127.0.0.1`, has no remote code, and
+must not be exposed on a LAN. It does not terminate TLS.
 
-- has no content scripts and executes no remote code;
-- validates all URLs and record shapes;
-- never sends full browsing history to DoH—only names that reached the
-  interstitial;
-- does not preserve the original request path/query/port (the registry target's own port is explicit), and does not claim TLS for custom names.
-
-A compromised registry can phish users who click through. That is why the conflict
-screen is explicit, why the sample is labelled, and why the registry governance is
-part of the security model.
+The extension has no content scripts and executes no remote code. It validates
+registry structure and configures the browser proxy; it does not inspect page
+content.
 
 ## Scale and performance
 
-- 2,000 client records max; one DNR rule each.
-- Source shards are one record per file; the generated client is the bounded bridge.
-- Lookup is a Map plus a short wildcard suffix walk.
-- Registry payload capped at 5 MB.
-- A 3/3 shard tree spreads names over 46,656 first-level and 46,656 second-level
-  buckets. That is a repository-layout fix, not a substitute for a database or a
-  browser's 5,000-rule ceiling. A 5-billion-name deployment needs an on-demand local
-  resolver/proxy, not a preloaded DNR list.
+- Generated client: 2,000 records max; one PAC condition or DNR rule each.
+- Source shards: one record per file; 3/3 tree, 46,656² buckets.
+- Proxy refresh: 60 seconds; lookup is exact + wildcard scan; 9 records today.
+- A 5-billion-name deployment needs on-demand shard lookup in the proxy and a PAC
+  strategy that does not enumerate every name. The proxy is the extension point;
+  the generated client is the current bridge.
 - DoH cache bounded to 200 entries/10 minutes.
-- Sync runs every 15–1440 minutes (default 360).
+- Sync every 15–1440 minutes (default 360).
 
 ## Testing
 
-- Vitest covers validation, loops, destinations, DoH parsing, URL policy, settings,
-  ports, and duplicate-name collisions.
-- `scripts/e2e.mjs` uses raw CDP in Chrome for Testing and a mock DoH server.
-- `web-ext lint` validates the Firefox manifest and API surface.
-- Firefox is smoke-loaded with `web-ext run`; a BiDi navigation confirmed
-  `google.com` redirects to the `moz-extension://` interstitial. Chrome has the full
-  scripted E2E.
+- Vitest: validation, loops, destinations, DoH parsing, URL policy, settings, ports,
+  duplicate names, PAC generation.
+- `scripts/e2e.mjs`: raw CDP Chrome fallback/DNR suite with mock DoH.
+- Resolver checks:
+  - local Node target + proxy: Host preserved for IP target;
+  - Chrome extension + local registry/target: URL stayed, target received Host;
+  - Firefox + `ipmap.info`: URL stayed and target content loaded;
+  - `abc.com` proxy check: target page returned with `Host: abc.com`.
+- `web-ext lint` validates the Firefox manifest/API surface.

@@ -13,7 +13,8 @@
     "test:e2e": "npm run build && node scripts/e2e.mjs",
     "validate:registry": "tsx scripts/validate-registry.ts",
     "check": "npm run typecheck && npm run test && npm run build && npm run validate:registry:shards",
-    "validate:registry:shards": "node registry/scripts/validate.mjs && node registry/scripts/build-client.mjs --check"
+    "validate:registry:shards": "node registry/scripts/validate.mjs && node registry/scripts/build-client.mjs --check",
+    "resolver": "node resolver/proxy.mjs"
   },
   "devDependencies": {
     "@types/chrome": "^0.3.7",

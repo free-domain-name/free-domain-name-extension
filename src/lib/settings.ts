@@ -15,7 +15,17 @@ export const DEFAULT_SETTINGS: Settings = {
   autoContinue: false,
   checkPublicDns: true,
   dohEndpoint: DEFAULT_DOH_ENDPOINT,
+  resolverEnabled: true,
+  resolverPort: 8787,
 };
+
+function clampPort(value: unknown): number {
+  const numeric = typeof value === "number" ? value : Number(value);
+  if (!Number.isInteger(numeric) || numeric < 1 || numeric > 65_535) {
+    return DEFAULT_SETTINGS.resolverPort;
+  }
+  return numeric;
+}
 
 function clampInterval(value: unknown): number {
   const numeric = typeof value === "number" ? value : Number(value);
@@ -35,6 +45,11 @@ export function sanitizeSettings(input: unknown): Settings {
         ? raw.checkPublicDns
         : DEFAULT_SETTINGS.checkPublicDns,
     dohEndpoint: validateDohEndpoint(raw.dohEndpoint) ?? DEFAULT_SETTINGS.dohEndpoint,
+    resolverEnabled:
+      typeof raw.resolverEnabled === "boolean"
+        ? raw.resolverEnabled
+        : DEFAULT_SETTINGS.resolverEnabled,
+    resolverPort: clampPort(raw.resolverPort),
   };
 }
 
@@ -56,6 +71,10 @@ export async function saveSettings(patch: Partial<Settings>): Promise<Settings> 
   merged.registryUrl = validateRegistryUrl(merged.registryUrl) ?? current.registryUrl;
   merged.dohEndpoint = validateDohEndpoint(merged.dohEndpoint) ?? current.dohEndpoint;
   merged.syncIntervalMinutes = clampInterval(merged.syncIntervalMinutes);
+  merged.resolverPort = clampPort(merged.resolverPort);
+  if (merged.resolverPort < 1) {
+    throw new Error("Resolver proxy port must be between 1 and 65535.");
+  }
 
   await api.storage.local.set({ [SETTINGS_KEY]: merged });
   return merged;

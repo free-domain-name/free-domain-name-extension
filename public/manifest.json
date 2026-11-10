@@ -7,6 +7,7 @@
   "minimum_chrome_version": "121",
   "permissions": [
     "declarativeNetRequest",
+    "proxy",
     "storage",
     "alarms"
   ],

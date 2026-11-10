@@ -5,8 +5,9 @@ Domain Name resolver. The browser extension reads a generated client index;
 humans review one small JSON file per name.
 
 The registry may override **any** domain, including real domains such as
-`google.com`. That is intentional. When public DNS also answers, the extension
-shows a conflict screen and the user chooses which destination to open.
+`google.com`. That is intentional. In resolver mode the local proxy uses the
+record target while keeping the requested name in the browser; the redirect
+fallback still has a public-DNS conflict screen.
 
 ## Sharded source layout
 
@@ -20,6 +21,7 @@ names/
   dem/ofd/_wildcard.demo.fdn.json
   ins/ecu/insecure.fdn.json
   abc/fdn/abc.fdn.json
+  abc/com/abc.com.json
   xyz/fdn/xyz.fdn.json
   ipm/api/ipmap.info.json
 ```
@@ -59,12 +61,14 @@ One record per file:
 
 - `name`: exact hostname or one leading wildcard. At least one dot is required.
   `*.com` is rejected because it would claim a whole TLD.
-- `url`: HTTP(S) target, including an optional port. This is what the browser
-  opens. **Ports are first-class.** `abc.fdn -> 203.0.113.10:80` and
+- `url`: HTTP target, including an optional port. **Ports are first-class.**
+  In resolver mode an IP/port target keeps the requested name in the URL and
+  sends that name as `Host`; a hostname target resolves the target through public
+  DNS and uses the target host as `Host`. `abc.fdn -> 203.0.113.10:80` and
   `xyz.fdn -> 203.0.113.10:8080` are different names and are allowed.
-- `cname`: hostname target; the extension opens `https://<cname>/`.
-- `a` / `aaaa`: DNS metadata. If no URL/CNAME exists, the first address is used
-  as an HTTP target.
+- `cname`: hostname target; the local resolver resolves it through public DNS.
+- `a` / `aaaa`: address metadata. If no URL/CNAME exists, the first address is
+  used as an HTTP target.
 - `owner`: GitHub handle accountable for the record.
 - `description`: optional, max 280 characters.
 - `updatedAt`: optional ISO date.
@@ -97,7 +101,10 @@ Two names may share an IP or a port. Only the name must be unique.
 - `insecure.fdn` -> `http://203.0.113.10:8080/`: HTTP/IP warning and port demo.
 - `abc.fdn` -> `http://203.0.113.10/` and `xyz.fdn` ->
   `http://203.0.113.10:8080/`: same IP, different ports; both allowed.
-- `ipmap.info` -> `http://ipmap.vitrn.com/`: a normal hostname target.
+- `ipmap.info` -> `http://ipmap.vitrn.com/`: hostname target; resolver keeps
+  `ipmap.info` in the URL and uses the target host for the upstream request.
+- `abc.com` -> `http://89.58.37.84:9094/`: real-domain override; resolver keeps
+  `abc.com` and connects to the IP on port 9094.
 
 ## Adding a name
 

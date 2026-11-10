@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
   "name": "Free Domain Name community registry",
-  "updatedAt": "2026-11-10T21:28:00Z",
+  "updatedAt": "2026-11-10T21:55:00Z",
   "layout": "client-v1",
-  "recordCount": 8,
+  "recordCount": 9,
   "wildcardCount": 1,
   "records": [
     {
@@ -12,6 +12,13 @@
       "owner": "free-domain-name",
       "description": "Wildcard example: every host under demo.fdn opens example.net.",
       "updatedAt": "2026-11-10T21:30:00Z"
+    },
+    {
+      "name": "abc.com",
+      "url": "http://89.58.37.84:9094/",
+      "owner": "ozkanpakdil",
+      "description": "abc.com resolves to 89.58.37.84 on port 9094.",
+      "updatedAt": "2026-11-10T21:55:00Z"
     },
     {
       "name": "abc.fdn",

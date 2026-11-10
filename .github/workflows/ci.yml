@@ -42,6 +42,9 @@ jobs:
       - name: Validate sample registry
         run: npm run validate:registry
 
+      - name: Check resolver proxy syntax
+        run: node --check resolver/proxy.mjs
+
       - name: Lint Firefox package
         run: npx --yes web-ext@10.8.0 lint --source-dir dist --no-input
 

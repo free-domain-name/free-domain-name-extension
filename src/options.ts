@@ -2,6 +2,7 @@ import { DEFAULT_SETTINGS } from "./lib/settings";
 import { sendRuntimeMessage } from "./lib/messages";
 import type {
   RegistryMeta,
+  ResolverStatus,
   SaveSettingsResponse,
   Settings,
   StatusResponse,
@@ -36,7 +37,11 @@ function sourceLabel(meta: RegistryMeta | null): string {
   return "Live (remote)";
 }
 
-function renderStatus(status: SyncStatus, registry: RegistryMeta | null): void {
+function renderStatus(
+  status: SyncStatus,
+  registry: RegistryMeta | null,
+  resolver?: ResolverStatus,
+): void {
   el("status-source").textContent = sourceLabel(registry);
   el("status-last-success").textContent = status.lastSuccessAt
     ? formatDate(status.lastSuccessAt)
@@ -44,6 +49,11 @@ function renderStatus(status: SyncStatus, registry: RegistryMeta | null): void {
   el("status-names").textContent = String(status.recordCount);
   el("status-wildcards").textContent = registry ? String(registry.wildcardCount) : "—";
   el("status-last-attempt").textContent = formatDate(status.lastAttemptAt);
+  el("status-resolver").textContent = resolver
+    ? resolver.active
+      ? `Active on 127.0.0.1:${resolver.port}`
+      : resolver.error ?? "Offline; redirect fallback"
+    : "—";
   el("status-error").textContent = status.error ?? "None";
 }
 
@@ -52,6 +62,8 @@ function fill(settings: Settings): void {
   el<HTMLInputElement>("sync-interval").value = String(settings.syncIntervalMinutes);
   el<HTMLInputElement>("check-dns").checked = settings.checkPublicDns;
   el<HTMLInputElement>("doh-endpoint").value = settings.dohEndpoint;
+  el<HTMLInputElement>("resolver-enabled").checked = settings.resolverEnabled;
+  el<HTMLInputElement>("resolver-port").value = String(settings.resolverPort);
 }
 
 function collect(): Partial<Settings> {
@@ -61,6 +73,8 @@ function collect(): Partial<Settings> {
     syncIntervalMinutes: Number.isFinite(interval) ? interval : DEFAULT_SETTINGS.syncIntervalMinutes,
     checkPublicDns: el<HTMLInputElement>("check-dns").checked,
     dohEndpoint: el<HTMLInputElement>("doh-endpoint").value.trim(),
+    resolverEnabled: el<HTMLInputElement>("resolver-enabled").checked,
+    resolverPort: Number(el<HTMLInputElement>("resolver-port").value),
   };
 }
 
@@ -75,6 +89,10 @@ function validate(patch: Partial<Settings>): string | null {
   if (!Number.isFinite(interval) || interval < 15 || interval > 1440) {
     return "Sync interval must be between 15 and 1440 minutes.";
   }
+  const port = patch.resolverPort ?? 0;
+  if (!Number.isInteger(port) || port < 1 || port > 65_535) {
+    return "Resolver proxy port must be between 1 and 65535.";
+  }
   return null;
 }
 
@@ -86,7 +104,7 @@ async function load(): Promise<void> {
       return;
     }
     fill(response.settings);
-    renderStatus(response.status, response.registry);
+    renderStatus(response.status, response.registry, response.resolver);
   } catch (error) {
     setSaveStatus(error instanceof Error ? error.message : "Could not load settings", true);
   }
@@ -112,9 +130,8 @@ el<HTMLFormElement>("form").addEventListener("submit", (event) => {
       }
       fill(response.settings);
       renderStatus(response.status, response.registry);
-      setSaveStatus(
-        "Saved.",
-      );
+      setSaveStatus("Saved. Refreshing resolver state…");
+      void load();
     })
     .catch((error: unknown) => {
       setSaveStatus(error instanceof Error ? error.message : "Could not save settings", true);

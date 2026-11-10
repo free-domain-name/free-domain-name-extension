@@ -40,7 +40,7 @@ function record(overrides: Record<string, unknown> = {}): Record<string, unknown
 describe("registry validation", () => {
   it("accepts the published sample registry, including a real domain", () => {
     const parsed = validateRegistry(sampleRegistry);
-    expect(parsed.records).toHaveLength(8);
+    expect(parsed.records).toHaveLength(9);
     expect(parsed.records.map((item) => item.name)).toContain("google.com");
     expect(parsed.records.find((item) => item.name === "google.com")?.url).toBe(
       "http://example.com/",
@@ -53,6 +53,9 @@ describe("registry validation", () => {
     );
     expect(parsed.records.find((item) => item.name === "ipmap.info")?.url).toBe(
       "http://ipmap.vitrn.com/",
+    );
+    expect(parsed.records.find((item) => item.name === "abc.com")?.url).toBe(
+      "http://89.58.37.84:9094/",
     );
   });
 

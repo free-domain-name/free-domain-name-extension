@@ -48,11 +48,16 @@ function render(response: StatusOk): void {
   } else if (!registry) {
     el("headline").textContent = "Waiting for registry";
     el("status-detail").textContent = "No valid registry is loaded. Press Sync now.";
+  } else if (response.resolver.active) {
+    el("headline").textContent = "Resolver active";
+    el("status-detail").textContent = `${sourceLabel(registry)} · ${registry.recordCount} ${
+      registry.recordCount === 1 ? "name" : "names"
+    } · DNS-like proxy on 127.0.0.1:${response.resolver.port}`;
   } else {
     el("headline").textContent = registry.source === "sample" ? "Sample registry active" : "Interception active";
     el("status-detail").textContent = `${sourceLabel(registry)} · ${registry.recordCount} ${
       registry.recordCount === 1 ? "name" : "names"
-    }`;
+    } · redirect fallback`;
   }
 
   el("record-count").textContent = registry ? String(registry.recordCount) : "0";
@@ -64,7 +69,9 @@ function render(response: StatusOk): void {
   ];
   el("sync-state").textContent = syncParts.join(" · ");
 
-  if (registry?.source === "sample") {
+  if (response.resolver.error) {
+    setNotice(`${response.resolver.error} Run “npm run resolver” to enable DNS-like mode.`);
+  } else if (registry?.source === "sample") {
     setNotice(
       "Using bundled demo data. Publish the organization registry, then press Sync now to replace it.",
     );

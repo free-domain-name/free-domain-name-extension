@@ -11,7 +11,8 @@ sells no data, and includes no telemetry.
 
 - the cached registry and its ETag/source/fetch time;
 - sync status and the last error;
-- settings (registry URL, interval, DoH endpoint, enable flag).
+- settings (registry URL, interval, DoH endpoint, enable flag, resolver toggle and
+  loopback port).
 
 `storage.session` / memory:
 
@@ -25,10 +26,13 @@ Uninstalling the extension removes its local data.
 | Destination | When | Data |
 | --- | --- | --- |
 | Registry URL | Sync at install/startup/alarm/manual | Normal HTTP request; no cookies or identifiers |
-| DoH endpoint | When a **registered** name is opened | The hostname, query type (A/AAAA), and the user's IP |
-| Registry target | After the user continues | Normal browser navigation |
+| DoH endpoint | Fallback mode, when a registered name is opened | The hostname, query type (A/AAAA), and the user's IP |
+| Registry target | Resolver mode or after the user continues in fallback | Normal HTTP request; the local proxy sees it |
+| `127.0.0.1:<resolverPort>` | Sync/settings health check | No user data; just a health probe |
 
-The extension does **not** send every visited hostname to DoH. It only sends names
+In **resolver mode** the extension does not query DoH at all. It sends the
+registry-managed HTTP request to the local proxy on `127.0.0.1`; that proxy connects
+to the record target. In **fallback mode** the extension queries DoH only for names
 that reached the interstitial because a registry record matched. Names with no
 record are untouched and never queried by the extension.
 
@@ -44,8 +48,10 @@ other raw-file fetch.
 
 ## Permissions
 
-`host_permissions: <all_urls>` is required because dynamic DNR redirect rules need
-host access. It is also what lets the background fetch the registry. There are no
+`host_permissions: <all_urls>` is required because proxy/PAC routing and dynamic
+DNR redirect rules need host access. It is also what lets the background fetch the
+registry. The `proxy` permission is used only to route registry-managed HTTP names
+to the loopback resolver; it does not route ordinary HTTP or any HTTPS. There are no
 content scripts, no remote code, and no data collection.
 
 ## Store disclosure
@@ -54,7 +60,8 @@ For a Chrome Web Store or Firefox AMO listing, disclose:
 
 - local storage of registry/settings;
 - network requests to the configured registry and DoH resolver;
-- the hostname sent to DoH for registered names;
+- the hostname sent to DoH for registered names in fallback mode;
+- local resolver-proxy use (loopback only);
 - no sale, analytics, or advertising.
 
 Firefox's manifest declares `data_collection_permissions.required: ["none"]`.

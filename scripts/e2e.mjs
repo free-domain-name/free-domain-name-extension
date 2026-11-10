@@ -369,7 +369,7 @@ async function main() {
     await waitFor(
       "DNR redirect rule",
       async () =>
-        (await sw.eval("chrome.declarativeNetRequest.getDynamicRules().then((rules) => rules.length)")) === 8,
+        (await sw.eval("chrome.declarativeNetRequest.getDynamicRules().then((rules) => rules.length)")) === 9,
     );
 
     // 1) Conflict interstitial for an arbitrary real domain.
@@ -410,7 +410,7 @@ async function main() {
     await navigate(page, "http://ipmap.info/");
     await waitForUri(page, (href) => href.includes("/interstitial.html"), 8_000);
     await waitForText(page, "ipmap.vitrn.com");
-    console.log("ipmap.info resolved to http://ipmap.vitrn.com/");
+    console.log("ipmap.info registry target matched (redirect fallback)");
 
     // 5) HTTP/IP targets show the warning and preserve the target port. The
     // user must click; there is no auto-open for HTTP.
@@ -482,7 +482,7 @@ async function main() {
       8_000,
     );
     assert(
-      (await popup.connection.eval("document.getElementById('record-count').textContent")) === "8",
+      (await popup.connection.eval("document.getElementById('record-count').textContent")) === "9",
       "popup record count",
     );
     assert(
@@ -510,7 +510,7 @@ async function main() {
     await waitFor(
       "rules restored",
       async () =>
-        (await sw.eval("chrome.declarativeNetRequest.getDynamicRules().then((rules) => rules.length)")) === 8,
+        (await sw.eval("chrome.declarativeNetRequest.getDynamicRules().then((rules) => rules.length)")) === 9,
     );
     console.log("Toggle cleared and restored the DNR rules");
     await sw.eval(`chrome.tabs.remove(${popup.tabId})`).catch(() => {});

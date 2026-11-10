@@ -11,13 +11,13 @@ export const SCHEMA_VERSION = 2;
 export interface RegistryRecord {
   /** Lowercase ASCII/punycode name; may start with `*.` for a wildcard. */
   name: string;
-  /** IPv4 addresses. Metadata only; `url` is what the browser navigates to. */
+  /** IPv4 addresses; first A is the HTTP fallback target. */
   a: string[];
-  /** IPv6 addresses. Metadata only. */
+  /** IPv6 addresses (metadata; the current proxy uses HTTP/IPv4). */
   aaaa: string[];
   /** Canonical DNS name, if any. */
   cname?: string;
-  /** HTTP(S) URL the extension opens. Ports are allowed. */
+  /** HTTP target, including an optional port. The resolver keeps the original URL. */
   url?: string;
   /** GitHub handle of the steward, e.g. "octocat". */
   owner: string;
@@ -59,6 +59,10 @@ export interface Settings {
   /** Query public DNS (DoH) to detect conflicts with the real internet. */
   checkPublicDns: boolean;
   dohEndpoint: string;
+  /** Use the local HTTP resolver proxy when it is running. */
+  resolverEnabled: boolean;
+  /** Loopback port of the resolver proxy. */
+  resolverPort: number;
 }
 
 export type DnsStatus = "exists" | "none" | "error" | "disabled";
@@ -68,6 +72,12 @@ export interface PublicDnsResult {
   addresses: string[];
   error?: string;
   checkedAt: number | null;
+}
+
+export interface ResolverStatus {
+  active: boolean;
+  port: number;
+  error: string | null;
 }
 
 export interface RegistryMeta {
@@ -99,6 +109,7 @@ export type StatusResponse =
       settings: Settings;
       status: SyncStatus;
       registry: RegistryMeta | null;
+      resolver: ResolverStatus;
     }
   | { ok: false; error: string };
 

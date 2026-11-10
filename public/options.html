@@ -58,6 +58,29 @@
         </section>
 
         <section class="panel">
+          <h2>Resolver proxy</h2>
+          <p class="panel-lede">
+            DNS-like mode keeps the requested name in the address bar and connects to the record
+            target. It requires the small local proxy; without it the extension falls back to
+            redirects.
+          </p>
+
+          <label class="check-row">
+            <input id="resolver-enabled" type="checkbox" />
+            <span>Use the local HTTP resolver proxy</span>
+          </label>
+
+          <label class="field">
+            <span>Loopback proxy port</span>
+            <input id="resolver-port" type="number" min="1" max="65535" step="1" required />
+          </label>
+          <p class="hint">
+            Start it with <code>npm run resolver</code>. The proxy only listens on
+            <code>127.0.0.1</code>. HTTPS is not handled by this mode.
+          </p>
+        </section>
+
+        <section class="panel">
           <h2>Status</h2>
           <p class="panel-lede">A failed refresh keeps the last valid registry instead of dropping all rules.</p>
           <dl class="status-grid">
@@ -82,6 +105,10 @@
               <dd id="status-last-attempt">—</dd>
             </div>
             <div class="status-item">
+              <dt>Resolver</dt>
+              <dd id="status-resolver">—</dd>
+            </div>
+            <div class="status-item">
               <dt>Last error</dt>
               <dd id="status-error">—</dd>
             </div>
@@ -97,11 +124,11 @@
       </form>
 
       <p class="fineprint">
-        Permissions: <code>declarativeNetRequest</code> (redirect matching top-level navigations),
+        Permissions: <code>declarativeNetRequest</code> (redirect fallback),
+        <code>proxy</code> (route only registry-managed HTTP names to the loopback resolver),
         <code>storage</code>, <code>alarms</code>, and host access for all sites. Host access is
-        required by Chrome to redirect an arbitrary community TLD; no page content is read or
-        modified. The extension only intercepts top-level navigations to TLDs declared by the
-        validated registry.
+        required by Chrome to intercept an arbitrary community TLD; no page content is read or
+        modified. The resolver proxy is an optional local companion and never runs in the cloud.
       </p>
     </main>
     <script src="options.js" type="module"></script>
